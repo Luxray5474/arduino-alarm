@@ -69,12 +69,12 @@ if(digitalRead( <name> ) == <trig> && isOpen[ <point> ] == false) {
 
 Ok, let's break this down;
 
-  * **<name>** is the name of your security point. *In this case it is "window1".*
-  * **<trig>** is the position of the switch that is **not normal**. For example, if you have a normally CLOSED switch, set it to HIGH, meaning it is triggered when the switch is OPEN. *In this case, it is "HIGH" because our window reed switch is normally CLOSED.*
-  * **<otrig>** is the **normal** position of the switch. *In this case, it is "LOW".*
-  * **<point>** is the element of the array that corresponds to your security point. *In this case, it is 2, the third element of the array, since "window1" is our third security point.*
-  * **<openMessage>** is the message to print through Serial when the switch is triggered. *In this case we'll make it "Window1 is now opened."*
-  * **<closeMessage>** is the message to print through Serial when the switch is un-triggered or returns to its normal position. *In this case we'll make it "Window1 is now closed."*
+  * **\<name>** is the name of your security point. *In this case it is "window1".*
+  * **\<trig>** is the position of the switch that is **not normal**. For example, if you have a normally CLOSED switch, set it to HIGH, meaning it is triggered when the switch is OPEN. *In this case, it is "HIGH" because our window reed switch is normally CLOSED.*
+  * **\<otrig>** is the **normal** position of the switch. *In this case, it is "LOW".*
+  * **\<point>** is the element of the array that corresponds to your security point. *In this case, it is 2, the third element of the array, since "window1" is our third security point.*
+  * **\<openMessage>** is the message to print through Serial when the switch is triggered. *In this case we'll make it "Window1 is now opened."*
+  * **\<closeMessage>** is the message to print through Serial when the switch is un-triggered or returns to its normal position. *In this case we'll make it "Window1 is now closed."*
 
 Here is an example using all the choices we made:
 
