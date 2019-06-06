@@ -120,8 +120,8 @@ void loop() {
         };
 
         if(readString.length() > 0) {
-          int n = readString.toInt();
-          if(n == pass) {
+          Serial.println(readString.toInt());
+          if(readString.toInt() == pass) {
             isArmed = 0;
             playMelody(unarmMelody, unarmDurations, 50);
             Serial.println("Successfully UNARMED.");
