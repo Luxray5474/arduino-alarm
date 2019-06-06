@@ -50,6 +50,8 @@ Then, assign a `pinMode()` to your new security point by adding one under the `S
 pinMode(window1, INPUT_PULLUP);
 ```
 
+<hr>
+
 Finally, create a code block for the logic of your security point under the `Security points` section under `void loop()`. Follow this template:
 
 ```
