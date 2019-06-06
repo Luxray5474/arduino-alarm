@@ -28,15 +28,15 @@ int isOpen[securityPoints] = {  // status of security points. each array element
   false, false                  // refers to a security point
 };
 
-// Melodies (they only play two notes for some reason?)
-int initMelody[] = {C4, E4, G4, E4, G4, C5};
-int initDurations[] = {200, 100, 100, 100, 100, 100};
+// Melodies
+int initMelody[] = {FS4, GS4, AS4, CS5, DS5, FS5};
+int initDurations[] = {100, 100, 100, 100, 100, 100};
 
-int unarmMelody[] = {C5, D5, E5, G5, C6};
-int unarmDurations[] = {50, 50, 50, 50, 50};
+int unarmMelody[] = {C5, C6};
+int unarmDurations[] = {50, 50};
 
-int armMelody[] = {C3, D3, G3, B3, C4};
-int armDurations[] = {50, 50, 50, 50, 50};
+int armMelody[] = {B3, B2};
+int armDurations[] = {50, 50};
 
 int alarmNote = CS5;
 
@@ -54,7 +54,7 @@ void setup() {
   
   Serial.println("Initialized.");
 
-  playMelody(initMelody, initDurations, 200);
+  playMelody(6, initMelody, initDurations, 40);
   
   if(isArmed == 1) {
     Serial.println("Currently ARMED.");
@@ -65,8 +65,8 @@ void setup() {
   };
 };
 
-void playMelody(int melody[], int noteDur[], int noteDelay[]) {
-  for(int i = 0; i < sizeof(melody); i++) {
+void playMelody(int melodyLength, int *melody, int *noteDur, int noteDelay) {
+  for(int i = 0; i < melodyLength; i++) {
     tone(spkr, melody[i], noteDur[i]);
     delay(noteDelay);
     noTone(spkr);
@@ -123,7 +123,7 @@ void loop() {
           Serial.println(readString.toInt());
           if(readString.toInt() == pass) {
             isArmed = 0;
-            playMelody(unarmMelody, unarmDurations, 50);
+            playMelody(2, unarmMelody, unarmDurations, 40);
             Serial.println("Successfully UNARMED.");
           } else Serial.println("Wrong password!");
           readString="";
@@ -131,7 +131,7 @@ void loop() {
       };
     } else {
       Serial.println("Successfully ARMED.");
-      playMelody(armMelody, armDurations, 50);
+      playMelody(2, armMelody, armDurations, 40);
       isArmed = 1;
     };
     delay(1000);
