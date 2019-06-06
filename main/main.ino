@@ -1,26 +1,34 @@
 #include "Tone.h";
 
+// Security points
 const int door1 = 4;
 const int door2 = 5;
 
-const int unarmedLed = 2; 
-const int armUnarm = 3; 
-const int spkr = 12;
-const int armedLed = 13;
+// Miscallaneous inputs/outputs
+const int unarmedLed = 2;       // LED to light up when unarmed
+const int armUnarm = 3;         // button used to arm/unarm
+const int spkr = 12;            
+const int armedLed = 13;        // LED to light up when armed
 
-const int pass = 113;
-const int securityPoints = 2;
+// Configuration parameters
+const int pass = 113;           // passkey, or PIN
+const int securityPoints = 2;   // number of security points
 
-bool isArmed = 1;
-bool soundAlarm = 0;
+const int maxWarnLevel = 250;   // maximum warnLevel
+const int warnDelayRef = 300;   // the number to subtract warnLevel from
+const int warnIncrement = 10;   // increment maxLevel by this number
 
-int maxWarnLevel = 250;
-int warnDelayRef = 300;
-int warnIncrement = 10;
+// Program booleans
+bool isArmed = 1;               // armed status. set to initialize as armed or unarmed
+bool soundAlarm = 0;            // should the program sound the alarm?
 
-int warnLevel = 0;
-int isOpen[securityPoints] = {false, false};
+// Program variables
+int warnLevel = 0;              
+int isOpen[securityPoints] = {  // status of security points. each array element
+  false, false                  // refers to a security point
+};
 
+// Melodies (they only play two notes for some reason?)
 int initMelody[] = {C4, E4, G4, E4, G4, C5};
 int initDurations[] = {200, 100, 100, 100, 100, 100};
 
@@ -35,8 +43,11 @@ int alarmNote = CS5;
 void setup() {
   Serial.begin(9600);
   
+  // Security points
   pinMode(door1, INPUT_PULLUP);
   pinMode(door2, INPUT_PULLUP);
+
+  // Misc. inputs/outputs
   pinMode(armUnarm, INPUT_PULLUP);
   pinMode(unarmedLed, OUTPUT); 
   pinMode(armedLed, OUTPUT);
