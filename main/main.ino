@@ -128,25 +128,26 @@ void loop() {
 				Serial.print("password> ");
 			}
 
-			while (Serial.available() > 0) {
+			if (Serial.available()) {
 				char c = Serial.read();
+				
 				readString += c;
-			}
 
-			if (readString.length() > 0) {
-				Serial.println(readString);
+				if (c == '\n') {
+					Serial.println(readString);
 
-				if (readString == pass) {
-					isArmed = 0;
+					if (readString == pass) {
+						isArmed = 0;
 
-					playMelody(2, unarmMelody, unarmDurations, noteDelay);
-					Serial.println("Successfully UNARMED.");
-				} else {
-					playMelody(2, armMelody, unarmDurations, noteDelay);
-					Serial.println("Wrong password!");
+						playMelody(2, unarmMelody, unarmDurations, noteDelay);
+						Serial.println("Successfully UNARMED.");
+					} else {
+						playMelody(2, armMelody, unarmDurations, noteDelay);
+						Serial.println("Wrong password!");
+					}
+					readString		 = "";
+					waitingForPass = 0;
 				}
-				readString		 = "";
-				waitingForPass = 0;
 			}
 
 			currentMillis = millis();
