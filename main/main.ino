@@ -11,34 +11,46 @@ const int spkr = 12;
 const int armedLed = 13;        // LED to light up when armed
 
 // Configuration parameters
-const int pass = 113;           // passkey, or PIN
+const String pass = "113";      // password
 const int securityPoints = 2;   // number of security points
 
 const int maxWarnLevel = 250;   // maximum warnLevel
 const int warnDelayRef = 300;   // the number to subtract warnLevel from
-const int warnIncrement = 10;   // increment maxLevel by this number
+const int warnIncrement = 7;    // increment maxLevel by this number
 
 // Program booleans
 bool isArmed = 1;               // armed status. set to initialize as armed or unarmed
 bool soundAlarm = 0;            // should the program sound the alarm?
 
 // Program variables
-int warnLevel = 0;              
-int isOpen[securityPoints] = {  // status of security points. each array element
-  false, false                  // refers to a security point
+int warnLevel = 0;
+int isOpen[securityPoints] = {
+    // status of security points. each array element
+    false, false // refers to a security point
 };
+
+bool waitingForPass = 0;
+String readString;
+
+unsigned long currentMillis = millis();
+unsigned long unarmIntTracker = 0;
+unsigned long alarmIntTracker = 0;
+bool flipflopUnarmState = LOW;
+bool flipflopAlarmState = LOW;
 
 // Melodies
 int initMelody[] = {FS4, GS4, AS4, CS5, DS5, FS5};
 int initDurations[] = {100, 100, 100, 100, 100, 100};
 
-int unarmMelody[] = {C5, C6};
+int unarmMelody[] = {B3, B2};
 int unarmDurations[] = {50, 50};
 
-int armMelody[] = {B3, B2};
+int armMelody[] = {C5, C6};
 int armDurations[] = {50, 50};
 
 int alarmNote = CS5;
+
+int noteDelay = 40;
 
 void setup() {
   Serial.begin(9600);
@@ -54,7 +66,7 @@ void setup() {
   
   Serial.println("Initialized.");
 
-  playMelody(6, initMelody, initDurations, 40);
+  playMelody(6, initMelody, initDurations, noteDelay);
   
   if(isArmed == 1) {
     Serial.println("Currently ARMED.");
@@ -71,6 +83,16 @@ void playMelody(int melodyLength, int *melody, int *noteDur, int noteDelay) {
     delay(noteDelay);
     noTone(spkr);
   }
+}
+
+void flipLed(int ledPin, bool &state) {
+  if(state == LOW) {
+    state = HIGH;
+  } else {
+    state = LOW;
+  };
+
+  digitalWrite(ledPin, state);
 }
 
 void loop() {
@@ -101,48 +123,57 @@ void loop() {
 
   // - Arm/Unarm - 
 
-  if(digitalRead(armUnarm) == LOW) {
-    if(isArmed == 1) {
-      Serial.println("To unarm, please enter the password.");
-      Serial.print("password> ");
-      while(!Serial.available()) {
-        digitalWrite(unarmedLed, HIGH);
-        delay(250);
-        digitalWrite(unarmedLed, LOW);
-        delay(250);
+  if(digitalRead(armUnarm) == LOW || waitingForPass == 1) {
+    if(isArmed == 1 || waitingForPass == 1) {
+      if(waitingForPass == 0) {
+        waitingForPass = 1;
+        Serial.println("To unarm, please enter the password.");
+        Serial.print("password> ");
       };
-      if(Serial.available()) {
-        String readString;
-        while(Serial.available()) {
-          char c = Serial.read();
-          readString += c;
-          delay(2); 
-        };
 
-        if(readString.length() > 0) {
-          Serial.println(readString.toInt());
-          if(readString.toInt() == pass) {
-            isArmed = 0;
-            playMelody(2, unarmMelody, unarmDurations, 40);
-            Serial.println("Successfully UNARMED.");
-          } else Serial.println("Wrong password!");
-          readString="";
+      while(Serial.available() > 0) {
+        char c = Serial.read();
+        readString += c;
+      };
+
+      if(readString.length() > 0) {
+        Serial.println(readString);
+
+        if(readString == pass) {
+          isArmed = 0;
+
+          playMelody(2, unarmMelody, unarmDurations, noteDelay);
+          Serial.println("Successfully UNARMED.");
+        } else {
+          playMelody(2, armMelody, unarmDurations, noteDelay);
+          Serial.println("Wrong password!");
         };
+        readString = "";
+
+        waitingForPass = 0;
+      };
+
+      currentMillis = millis();
+
+      if(((currentMillis - unarmIntTracker) >= 1000) && waitingForPass == 1) { // async blink unarm led every 250ms
+        unarmIntTracker = currentMillis;
+        flipLed(unarmedLed, flipflopUnarmState);
       };
     } else {
-      Serial.println("Successfully ARMED.");
-      playMelody(2, armMelody, armDurations, 40);
       isArmed = 1;
+      waitingForPass = 0;
+
+      playMelody(2, armMelody, armDurations, noteDelay);
+      Serial.println("Successfully ARMED.");
     };
-    delay(1000);
   };
 
   // - Activate unarmed/armed LEDs - 
 
-  if(isArmed == 1) {
+  if(isArmed == 1 && waitingForPass == 0 && soundAlarm == 0) {
     digitalWrite(armedLed, HIGH);
     digitalWrite(unarmedLed, LOW);
-  } else {
+  } else if(waitingForPass == 0 && soundAlarm == 0) {
     digitalWrite(unarmedLed, HIGH);
     digitalWrite(armedLed, LOW);
   };
@@ -150,13 +181,25 @@ void loop() {
   // - Sound alarm -
 
   if(soundAlarm == 1) {
-    if(warnLevel < maxWarnLevel) warnLevel = warnLevel + warnIncrement;
-    Serial.println(warnLevel);
-    digitalWrite(armedLed, HIGH);
-    tone(spkr, alarmNote);
-    delay(warnDelayRef - warnLevel);
+    currentMillis = millis();
+    
+    if((currentMillis - alarmIntTracker) >= (warnDelayRef - warnLevel)) {
+      alarmIntTracker = currentMillis;
+
+      if (warnLevel < maxWarnLevel) {
+        warnLevel = warnLevel + warnIncrement;
+      };
+
+      flipLed(armedLed, flipflopAlarmState);
+      
+      if(flipflopAlarmState == HIGH) {
+        tone(spkr, alarmNote);
+      } else {
+        noTone(spkr);
+      }
+    }
+  } else {
+    warnLevel = 0;
     noTone(spkr);
-    digitalWrite(armedLed, LOW);
-    delay(warnDelayRef - warnLevel);
-  } else warnLevel = 0;
+  }
 }
