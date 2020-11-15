@@ -21,6 +21,8 @@ const int warnIncrement = 7;		// increment maxLevel by this number
 // Program booleans
 bool isArmed		= 1;	// armed status. set to initialize as armed or unarmed
 bool soundAlarm = 0;	// should the program sound the alarm?
+bool unarmButtonDown = 0;	 // boolean that prevents unarm right after rearm
+													 // until unarm button is depressed
 
 // Program variables
 int warnLevel							 = 0;
@@ -120,7 +122,8 @@ void loop() {
 
 	// - Arm/Unarm -
 
-	if (digitalRead(armUnarm) == LOW || waitingForPass == 1) {
+	if ((digitalRead(armUnarm) == LOW || waitingForPass == 1) &&
+			unarmButtonDown == 0) {
 		if (isArmed == 1 || waitingForPass == 1) {
 			if (waitingForPass == 0) {
 				waitingForPass = 1;
@@ -130,10 +133,10 @@ void loop() {
 
 			if (Serial.available()) {
 				char c = Serial.read();
-				
-				readString += c;
 
-				if (c == '\n') {
+				if (c != '\n') {
+					readString += c;
+				} else {
 					Serial.println(readString);
 
 					if (readString == pass) {
@@ -158,12 +161,18 @@ void loop() {
 				flipLed(unarmedLed, flipflopUnarmState);
 			}
 		} else {
-			isArmed				 = 1;
-			waitingForPass = 0;
+			isArmed					= 1;
+			waitingForPass	= 0;
+			unarmButtonDown = 1;
 
 			playMelody(2, armMelody, armDurations, noteDelay);
 			Serial.println("Successfully ARMED.");
 		}
+	}
+
+	// - Button safety -
+	if (digitalRead(armUnarm) == HIGH && unarmButtonDown == 1) {
+		unarmButtonDown = 0;
 	}
 
 	// - Activate unarmed/armed LEDs -
