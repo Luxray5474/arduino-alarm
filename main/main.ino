@@ -175,6 +175,11 @@ void loop() {
 		unarmButtonDown = 0;
 	}
 
+	// - Ignore Serial input unless we're waiting for it -
+	if (waitingForPass == 0) {
+		while (Serial.available()) { Serial.read(); }
+	}
+
 	// - Activate unarmed/armed LEDs -
 
 	if (isArmed == 1 && waitingForPass == 0 && soundAlarm == 0) {
