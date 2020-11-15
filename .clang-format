@@ -1,0 +1,6 @@
+BasedOnStyle: Google
+UseTab: Always
+IndentWidth: 2
+TabWidth: 2
+AlignConsecutiveAssignments: true
+AllowShortBlocksOnASingleLine: Always
